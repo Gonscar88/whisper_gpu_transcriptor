@@ -1,0 +1,10 @@
+# GPU-accelerated Whisper transcription dependencies
+
+# PyTorch - Deep learning framework with GPU support
+torch>=2.0.0
+
+# OpenAI Whisper - Speech recognition model
+openai-whisper>=20230314
+
+# For AMD ROCm GPU support (optional, uncomment if needed):
+# --index-url https://download.pytorch.org/whl/rocm5.6
