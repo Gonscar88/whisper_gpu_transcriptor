@@ -15,7 +15,8 @@ os.environ['HIP_VISIBLE_DEVICES'] = '0'
 
 # Configurar logging
 def configurar_logging():
-    ruta_logs = "~/Videos/transcription_tools"
+    # Change this path to save logs
+    ruta_logs = "~/Videos/Linux_Windows_OBS/auto_transcripciones"
     if not os.path.exists(ruta_logs):
         os.makedirs(ruta_logs)
     
@@ -98,7 +99,7 @@ def full_transcription_task(filename_audio_or_video, whisper_size='medium', lang
     # Configurar logging
     configurar_logging()
     
-    print("🚀 Starting Transcription with OpenAI Whisper + Graphics Card")
+    print("Starting Transcription with OpenAI Whisper + Graphics Card")
     logging.info(f"Starting Transcription from file: {filename_audio_or_video}")
     
     if not os.path.exists(filename_audio_or_video):
@@ -110,11 +111,11 @@ def full_transcription_task(filename_audio_or_video, whisper_size='medium', lang
     # Verificar GPU
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name()
-        print(f"✅ GPU detected: {gpu_name}")
+        print(f"GPU detected: {gpu_name}")
         logging.info(f"GPU detected: {gpu_name}")
         device = "cuda"
     else:
-        print("⚠️ Using CPU, fallback")
+        print("Using CPU, fallback")
         logging.warning("GPU not available, using CPU fallback")
         device = "cpu"
 
@@ -133,9 +134,9 @@ def full_transcription_task(filename_audio_or_video, whisper_size='medium', lang
     )
     logging.info("Full Transcription Done")
 
-    # Crear estructura de carpetas organizadas
-    ruta_base = "~/Videos/transcription_tools"
-    
+    # Crear estructura de carpetas organizadas, change this path, for full path, where u want to save the files.
+    ruta_base = os.path.expanduser("~/Videos/Linux_Windows_OBS/auto_transcription")
+
     # Crear carpeta base si no existe
     if not os.path.exists(ruta_base):
         os.makedirs(ruta_base)
@@ -196,24 +197,43 @@ def full_transcription_task(filename_audio_or_video, whisper_size='medium', lang
     logging.info(f"Characters written in file: {len(result['text'])} characters")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--full_file_path', dest='full_file_path', type=str,
-        help="Full path to the file to traslate, Whisper can Manage audio files and video files"
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="GPU-accelerated transcription tool using OpenAI Whisper"
     )
     parser.add_argument(
-        '--whisper-size', dest='whisper_size', type=str,
+        '--full_file_path', dest='full_file_path', type=str, required=True,
+        help="Full path to the file to transcribe, Whisper can manage audio and video files"
+    )
+    parser.add_argument(
+        '--whisper-size', dest='whisper_size', type=str, default='medium',
         help="Set whisper size param. Full Documentation in: https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages")
 
-    parser.add_argument('--lang', dest='lang', type=str, help="Set the language to traslate, usually 'es' or 'en'")
-    parser.add_argument('--with_timestamps', dest='with_timestamps', type=bool, help="Enable to show timestamps in the transcription")
-    parser.add_argument('--verbose', dest='verbose', type=bool, help="Show all the process of traslating")
-    args = parser.parse_args()
-    import sys
-    if len(sys.argv) == 0:
-        print("Use it like this: python3 transcription-gpu.py full_path_filename.mp4 'medium' 'en' True True")
+    parser.add_argument('--lang', dest='lang', type=str, default='es',
+                       help="Set the language to transcribe, usually 'es' or 'en'")
+    parser.add_argument('--with_timestamps', dest='with_timestamps', type=bool, default=True,
+                       help="Enable to show timestamps in the transcription")
+    parser.add_argument('--verbose', dest='verbose', type=bool, default=True,
+                       help="Show all the process of transcribing")
+
+    # Verificar si se proporcionaron argumentos
+    if len(sys.argv) == 1:
+        parser.print_help()
+        print("\nExample: python3 transcriptor-gpu.py --full_file_path /path/to/file.mp4")
         sys.exit(1)
 
-    full_file_route = sys.argv[1] or full_file_path
+    args = parser.parse_args()
 
-    full_transcription_task(full_file_route, args.whisper_size, args.lang, with_timestamps, verbose)
+    # Validar que el archivo existe antes de llamar a la función
+    if args.full_file_path is None:
+        print("Error: --full_file_path is required")
+        sys.exit(1)
+
+    full_transcription_task(
+        args.full_file_path,
+        args.whisper_size,
+        args.lang,
+        args.with_timestamps,
+        args.verbose
+    )
